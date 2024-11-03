@@ -7,6 +7,7 @@ import (
 
 type Expression interface {
 	Node
+	expressionNode()
 }
 
 type Node interface {
@@ -41,6 +42,25 @@ func (p *Program) String() string {
 	return out.String()
 }
 
+type ExpressionStatement struct {
+	Token      token.Token // the first token of the expression
+	Expression Expression
+}
+
+func (es *ExpressionStatement) TokenLiteral() string {
+	return es.Token.Literal
+}
+
+func (es *ExpressionStatement) String() string {
+	if es.Expression != nil {
+		return es.Expression.String()
+	}
+	return ""
+}
+
+func (es *ExpressionStatement) statementNode() {
+}
+
 type BinaryExpression struct {
 	Left     Expression
 	Right    Expression
@@ -62,4 +82,22 @@ func (b *BinaryExpression) String() string {
 	out.WriteString(token.RightParen)
 
 	return out.String()
+}
+
+func (b *BinaryExpression) expressionNode() {}
+
+type IntegerLiteral struct {
+	Token token.Token
+	Value int64
+}
+
+func (il *IntegerLiteral) TokenLiteral() string {
+	return il.Token.Literal
+}
+
+func (il *IntegerLiteral) String() string {
+	return il.Token.Literal
+}
+
+func (il *IntegerLiteral) expressionNode() {
 }

@@ -1,0 +1,39 @@
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Vendor directories (for Go modules)
+vendor/
+
+# Go build artifacts
+*.log
+*.out
+*.test
+*.prof
+
+# IDE/editor settings
+.idea/
+.vscode/
+*.swp
+
+# Dependency directories
+go.sum
+go.work
+go.work.sum
+
+# Ignoring Mockery generated mocks in all packages
+**/mocks/
+
+# Other generated files and folders
+*.gen.go
+
+# Coverage files
+coverage.out
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+.DS_Store

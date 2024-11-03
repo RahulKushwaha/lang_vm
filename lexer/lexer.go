@@ -2,6 +2,11 @@ package lexer
 
 import "lang_vm/token"
 
+//go:generate mockery --name ILexer
+type ILexer interface {
+	NextToken() token.Token
+}
+
 type Lexer struct {
 	input        string
 	position     int
