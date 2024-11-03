@@ -2,16 +2,17 @@ package main
 
 import (
 	"fmt"
+	"lang_vm/lexer"
+	"lang_vm/parser"
 )
 
 func main() {
-	s := "gopher"
-	fmt.Println("Hello and welcome, %s!", s)
+	input := "3 + 5"
+	l := lexer.New(input)
+	p := parser.New(l)
+	program := p.ParseProgram()
 
-	for i := 1; i <= 5; i++ {
-		//TIP You can try debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-		// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>. To start your debugging session,
-		// right-click your code in the editor and select the <b>Debug</b> option.
-		fmt.Println("i =", 100/i)
+	for _, statement := range program.Statements {
+		fmt.Printf("%v\n", statement.String())
 	}
 }
