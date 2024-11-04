@@ -7,7 +7,15 @@ import (
 )
 
 func main() {
-	input := "3 + 5"
+	input := `
+		if (5 + 10) {
+			4 + 5;
+		} else {
+			99 + 99;
+			55 - 8
+		}
+`
+
 	l := lexer.New(input)
 	p := parser.New(l)
 	program := p.ParseProgram()

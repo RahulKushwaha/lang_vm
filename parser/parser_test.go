@@ -67,6 +67,22 @@ func TestExpressionParsing(t *testing.T) {
 
 	}
 
+	{
+		l := &mocks.ILexer{}
+		l.On("NextToken").Return(token.Token{Type: token.Identifier, Literal: "a"}).Once()
+		l.On("NextToken").Return(token.Token{Type: token.Assign, Literal: "="}).Once()
+		l.On("NextToken").Return(token.Token{Type: token.Int, Literal: "5"}).Once()
+		l.On("NextToken").Return(token.Token{Type: token.Asterisk, Literal: "*"}).Once()
+		l.On("NextToken").Return(token.Token{Type: token.Int, Literal: "3"}).Once()
+		l.On("NextToken").Return(token.Token{Type: token.EOF, Literal: ""}).Once()
+
+		testCases["simple_plus_and_multiply_expression"] = testCase{
+			l:           l,
+			expectedOut: "a = 5 * 3",
+		}
+
+	}
+
 	for name, tc := range testCases {
 		parser := New(tc.l)
 
