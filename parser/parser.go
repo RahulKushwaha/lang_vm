@@ -54,6 +54,7 @@ func New(l lexer.ILexer) *Parser {
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
 	p.prefixParseFns[token.Int] = p.parseIntegerLiteral
+	p.prefixParseFns[token.If] = p.parseIfExpression
 
 	p.infixParseFns = make(map[token.TokenType]infixParseFn)
 	p.infixParseFns[token.Plus] = p.parseInfixExpression
@@ -81,6 +82,20 @@ func (p *Parser) peekTokenIs(t token.TokenType) bool {
 	return p.peekToken.Type == t
 }
 
+func (p *Parser) currentTokenIs(t token.TokenType) bool {
+	return p.currentToken.Type == t
+}
+
+func (p *Parser) expectPeek(t token.TokenType) bool {
+	if p.peekTokenIs(t) {
+		p.nextToken()
+		return true
+	}
+
+	p.peekError(t)
+	return false
+}
+
 // Precedence
 
 func (p *Parser) peekPrecedence() int {
@@ -101,15 +116,29 @@ func (p *Parser) currentPrecedence() int {
 
 func (p *Parser) ParseProgram() *ast.Program {
 	program := ast.Program{
-		Statements: []ast.Statement{p.parseExpressionStatement()},
+		Statements: []ast.Statement{},
+	}
+
+	for p.peekToken.Type != token.EOF {
+		stmt := p.ParseStatement()
+		if stmt != nil {
+			program.Statements = append(program.Statements, stmt)
+		}
+
+		p.nextToken()
 	}
 
 	return &program
 }
 
+func (p *Parser) ParseStatement() ast.Statement {
+	return p.parseExpressionStatement()
+}
+
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
+	tok := p.currentToken
 	return &ast.ExpressionStatement{
-		Token:      p.currentToken,
+		Token:      tok,
 		Expression: p.parseExpression(Lowest),
 	}
 }
@@ -134,6 +163,11 @@ func (p *Parser) parseExpression(precedence int) ast.Expression {
 	}
 
 	return leftExp
+}
+
+func (p *Parser) peekError(t token.TokenType) {
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, p.peekToken.Type)
+	p.errors = append(p.errors, msg)
 }
 
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
@@ -165,5 +199,53 @@ func (p *Parser) parseInfixExpression(left ast.Expression) ast.Expression {
 	precedence := p.currentPrecedence()
 	p.nextToken()
 	expression.Right = p.parseExpression(precedence)
+	return expression
+}
+
+func (p *Parser) parseBlockStatement() *ast.BlockStatement {
+	block := &ast.BlockStatement{Token: p.currentToken}
+	block.Statements = []ast.Statement{}
+
+	p.nextToken()
+
+	for !p.currentTokenIs(token.RightBrace) {
+		stmt := p.ParseStatement()
+		if stmt != nil {
+			block.Statements = append(block.Statements, stmt)
+		}
+
+		p.nextToken()
+	}
+
+	return block
+}
+
+func (p *Parser) parseIfExpression() ast.Expression {
+	expression := &ast.IfExpression{Token: p.currentToken}
+
+	if !p.expectPeek(token.LeftParen) {
+		return nil
+	}
+
+	// get condition
+	p.nextToken()
+	expression.Condition = p.parseExpression(Lowest)
+
+	//if !p.expectPeek(token.RightParen) {
+	//	return nil
+	//}
+
+	if !p.expectPeek(token.LeftBrace) {
+		return nil
+	}
+
+	expression.Consequence = p.parseBlockStatement()
+
+	if p.peekTokenIs(token.Else) {
+		p.nextToken()
+
+		expression.Alternative = p.parseBlockStatement()
+	}
+
 	return expression
 }
