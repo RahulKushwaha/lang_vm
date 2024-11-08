@@ -15,6 +15,7 @@ const (
 	OpAdd
 	OpSub
 	OpMul
+	OpHalt
 )
 
 type Definition struct {
@@ -28,6 +29,7 @@ var definitions = map[OpCode]*Definition{
 	OpAdd:      {"OpAdd", []int{}},
 	OpSub:      {"OpSub", []int{}},
 	OpMul:      {"OpMul", []int{}},
+	OpHalt:     {"OpHalt", []int{}},
 }
 
 type Instructions []byte
@@ -39,6 +41,23 @@ func Lookup(op byte) (*Definition, error) {
 	}
 
 	return def, nil
+}
+
+type Builder struct {
+	ins Instructions
+}
+
+func NewBuilder() *Builder {
+	return &Builder{ins: Instructions{}}
+}
+
+func (b *Builder) Add(op OpCode, operands ...int) *Builder {
+	b.ins = append(b.ins, Make(op, operands...)...)
+	return b
+}
+
+func (b *Builder) Build() Instructions {
+	return b.ins
 }
 
 func Make(op OpCode, operands ...int) []byte {
