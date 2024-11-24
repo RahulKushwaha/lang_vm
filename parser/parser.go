@@ -243,6 +243,9 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 	if p.peekTokenIs(token.Else) {
 		p.nextToken()
+		if p.peekTokenIs(token.LeftBrace) {
+			p.nextToken()
+		}
 
 		expression.Alternative = p.parseBlockStatement()
 	}
