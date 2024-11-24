@@ -15,6 +15,13 @@ const (
 	OpAdd
 	OpSub
 	OpMul
+	OpDiv
+	OpJump
+	OpJumpNotTruthy
+	OpNull
+	OpGreaterThan
+	OpEqual
+	OpNotEqual
 	OpHalt
 )
 
@@ -24,12 +31,19 @@ type Definition struct {
 }
 
 var definitions = map[OpCode]*Definition{
-	OpConstant: {"OpConstant", []int{2}},
-	OpPop:      {"OpPop", []int{}},
-	OpAdd:      {"OpAdd", []int{}},
-	OpSub:      {"OpSub", []int{}},
-	OpMul:      {"OpMul", []int{}},
-	OpHalt:     {"OpHalt", []int{}},
+	OpConstant:      {"OpConstant", []int{2}},
+	OpPop:           {"OpPop", []int{}},
+	OpAdd:           {"OpAdd", []int{}},
+	OpSub:           {"OpSub", []int{}},
+	OpMul:           {"OpMul", []int{}},
+	OpDiv:           {"OpDiv", []int{}},
+	OpJump:          {"OpJump", []int{2}},
+	OpJumpNotTruthy: {"OpJumpNotTruthy", []int{2}},
+	OpNull:          {"OpNull", []int{}},
+	OpGreaterThan:   {"OpGreaterThan", []int{}},
+	OpEqual:         {"OpEqual", []int{}},
+	OpNotEqual:      {"OpNotEqual", []int{}},
+	OpHalt:          {"OpHalt", []int{}},
 }
 
 type Instructions []byte
