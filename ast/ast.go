@@ -155,3 +155,45 @@ func (i *IfExpression) String() string {
 }
 
 func (i *IfExpression) expressionNode() {}
+
+type Identifier struct {
+	Token token.Token
+	Value string
+}
+
+func (i *Identifier) TokenLiteral() string {
+	return i.Token.Literal
+}
+
+func (i *Identifier) String() string {
+	return i.Value
+}
+
+func (i *Identifier) expressionNode() {}
+
+type LetStatement struct {
+	Token token.Token
+	Name  *Identifier
+	Value Expression
+}
+
+func (l *LetStatement) TokenLiteral() string {
+	return l.Token.Literal
+}
+
+func (l *LetStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(l.TokenLiteral() + " ")
+	out.WriteString(l.Name.String())
+	out.WriteString(" = ")
+
+	if l.Value != nil {
+		out.WriteString(l.Value.String())
+	}
+
+	out.WriteString(token.Semicolon)
+
+	return out.String()
+}
+
+func (l *LetStatement) statementNode() {}

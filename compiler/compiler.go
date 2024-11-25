@@ -8,9 +8,10 @@ import (
 )
 
 type Compiler struct {
-	ins        code.Instructions
-	scopes     []CompilationScope
-	scopeIndex int
+	ins         code.Instructions
+	scopes      []CompilationScope
+	scopeIndex  int
+	symbolTable *SymbolTable
 }
 
 type ByteCode struct {
@@ -24,9 +25,10 @@ type CompilationScope struct {
 
 func NewCompiler() *Compiler {
 	c := &Compiler{
-		ins:        code.Instructions{},
-		scopes:     make([]CompilationScope, 0),
-		scopeIndex: 0,
+		ins:         code.Instructions{},
+		scopes:      make([]CompilationScope, 0),
+		scopeIndex:  0,
+		symbolTable: NewSymbolTable(),
 	}
 
 	c.scopes = append(c.scopes, CompilationScope{ins: code.Instructions{}})
@@ -50,6 +52,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 			}
 		}
 
+	case *ast.Identifier:
+		if err := c.compileIdentifier(n); err != nil {
+			return err
+		}
+
+	case *ast.LetStatement:
+		if err := c.compileLetStatement(n); err != nil {
+			return err
+		}
+
 	case *ast.ExpressionStatement:
 		if err := c.Compile(n.Expression); err != nil {
 			return err
@@ -71,6 +83,28 @@ func (c *Compiler) Compile(node ast.Node) error {
 	default:
 		return fmt.Errorf("unknown node type: %T", n)
 	}
+
+	return nil
+}
+
+func (c *Compiler) compileIdentifier(n *ast.Identifier) error {
+	symbol, ok := c.symbolTable.Resolve(n.Value)
+	if !ok {
+		return fmt.Errorf("identifier could not be resolved: %s", n.Value)
+	}
+
+	c.emit(code.OpLoad, symbol.Index)
+
+	return nil
+}
+
+func (c *Compiler) compileLetStatement(n *ast.LetStatement) error {
+	symbol := c.symbolTable.Define(n.Name.String())
+	if err := c.Compile(n.Value); err != nil {
+		return err
+	}
+
+	c.emit(code.OpStore, symbol.Index)
 
 	return nil
 }
