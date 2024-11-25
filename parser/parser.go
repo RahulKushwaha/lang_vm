@@ -53,6 +53,7 @@ func New(l lexer.ILexer) *Parser {
 	p := &Parser{l: l, errors: []string{}}
 
 	p.prefixParseFns = make(map[token.TokenType]prefixParseFn)
+	p.prefixParseFns[token.Identifier] = p.parseIdentifier
 	p.prefixParseFns[token.Int] = p.parseIntegerLiteral
 	p.prefixParseFns[token.If] = p.parseIfExpression
 
@@ -132,7 +133,34 @@ func (p *Parser) ParseProgram() *ast.Program {
 }
 
 func (p *Parser) ParseStatement() ast.Statement {
-	return p.parseExpressionStatement()
+	switch p.currentToken.Type {
+	case token.Let:
+		return p.parseLetStatement()
+	default:
+		return p.parseExpressionStatement()
+	}
+}
+
+func (p *Parser) parseLetStatement() ast.Statement {
+	stmt := &ast.LetStatement{Token: p.currentToken}
+
+	if !p.expectPeek(token.Identifier) {
+		return nil
+	}
+
+	stmt.Name = &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+	if !p.expectPeek(token.Assign) {
+		return nil
+	}
+
+	p.nextToken()
+	stmt.Value = p.parseExpression(Lowest)
+
+	if p.peekTokenIs(token.Semicolon) {
+		p.nextToken()
+	}
+
+	return stmt
 }
 
 func (p *Parser) parseExpressionStatement() *ast.ExpressionStatement {
@@ -173,6 +201,11 @@ func (p *Parser) peekError(t token.TokenType) {
 func (p *Parser) noPrefixParseFnError(t token.TokenType) {
 	msg := fmt.Sprintf("no prefix parse function for %s found", t)
 	p.errors = append(p.errors, msg)
+}
+
+func (p *Parser) parseIdentifier() ast.Expression {
+	identifier := &ast.Identifier{Token: p.currentToken, Value: p.currentToken.Literal}
+	return identifier
 }
 
 func (p *Parser) parseIntegerLiteral() ast.Expression {
@@ -231,9 +264,9 @@ func (p *Parser) parseIfExpression() ast.Expression {
 	p.nextToken()
 	expression.Condition = p.parseExpression(Lowest)
 
-	//if !p.expectPeek(token.RightParen) {
-	//	return nil
-	//}
+	if !p.expectPeek(token.RightParen) {
+		return nil
+	}
 
 	if !p.expectPeek(token.LeftBrace) {
 		return nil
@@ -243,8 +276,8 @@ func (p *Parser) parseIfExpression() ast.Expression {
 
 	if p.peekTokenIs(token.Else) {
 		p.nextToken()
-		if p.peekTokenIs(token.LeftBrace) {
-			p.nextToken()
+		if !p.expectPeek(token.LeftBrace) {
+			return nil
 		}
 
 		expression.Alternative = p.parseBlockStatement()

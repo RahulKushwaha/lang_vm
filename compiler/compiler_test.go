@@ -21,6 +21,13 @@ func TestCompilerByteCode(t *testing.T) {
 				Add(code.OpAdd).
 				Build(),
 		},
+		"let_statement": {
+			code: "let a = 5; ",
+			byteCode: code.NewBuilder().
+				Add(code.OpConstant, 5).
+				Add(code.OpStore, 5555).
+				Build(),
+		},
 		"multiple_statements": {
 			code: `2 + 5;
 					5 - 5; 

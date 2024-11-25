@@ -10,15 +10,18 @@ import (
 
 func main() {
 	input := `
+		let a = 5;
+		let b = a;
 		if (5 + 10) {
-			4 + 5
+			4 + 5;
 		} else {
-			99 + 99
-			55 - 8
+			99 + 99;
+			55 - 8;
 		}
 `
 
 	l := lexer.New(input)
+	//fmt.Println(l.GetAllTokens())
 	p := parser.New(l)
 	program := p.ParseProgram()
 

@@ -18,15 +18,13 @@ type Lexer struct {
 }
 
 func New(input string) *Lexer {
-	if len(input) > 0 {
-		l := &Lexer{input: input, position: 0, nextPosition: 0, ch: 0}
-		return l
-	}
+	l := &Lexer{input: input, position: 0, nextPosition: 0, ch: 0}
+	l.readChar()
+	return l
 
-	return &Lexer{input: input, position: 0, nextPosition: 0, ch: 0}
 }
 
-func (l *Lexer) getAllTokens() []token.Token {
+func (l *Lexer) GetAllTokens() []token.Token {
 	tokens := make([]token.Token, 0)
 	for {
 		t := l.NextToken()
@@ -44,17 +42,17 @@ func (l *Lexer) getAllTokens() []token.Token {
 func (l *Lexer) NextToken() token.Token {
 	var tok token.Token
 
-	if l.position >= len(l.input) {
-		l.ch = 0
-	} else {
-		l.ch = l.input[l.position]
-	}
-
 	skipWhiteSpaces(l)
 
 	switch {
+	case l.ch == ';':
+		tok = token.Token{Type: token.Semicolon, Literal: ";"}
+		
 	case l.ch == '{':
 		tok = token.Token{Type: token.LeftBrace, Literal: "{"}
+
+	case l.ch == '=':
+		tok = token.Token{Type: token.Assign, Literal: "="}
 
 	case l.ch == '}':
 		tok = token.Token{Type: token.RightBrace, Literal: "}"}
@@ -105,11 +103,13 @@ func isLetter(ch byte) bool {
 
 func getNumber(l *Lexer) string {
 	pos := l.position
-	for isDigit(l.ch) {
+	c := l.peekChar()
+	for isDigit(c) {
 		l.readChar()
+		c = l.peekChar()
 	}
 
-	return l.input[pos:l.position]
+	return l.input[pos : l.position+1]
 }
 
 func isDigit(ch byte) bool {
